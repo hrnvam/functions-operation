@@ -437,36 +437,28 @@ export default function App() {
     const padB = Math.max(0.1, (B.xmax - B.xmin) * 0.1);
     const cA = denseCurve(mfType, paramsA, A.xmin - padA, A.xmax + padA);
     const cB = denseCurve(mfType, paramsB, B.xmin - padB, B.xmax + padB);
-    
-    // Оригінальні сінглтони (напівпрозорі лінії всередині)
+
     const rawC = C.zs.map((z, i) => ({ x: z, y: C.mus[i] }));
-    
-    // --- ПОБУДОВА ІДЕАЛЬНОЇ ОГИНАЮЧОЇ (АЛЬФА-ЗРІЗИ) ---
-    // 1. Знаходимо всі унікальні рівні належності (mu) і сортуємо їх за зростанням
+
     const uniqueMus = Array.from(new Set(C.mus)).sort((a, b) => a - b);
     const leftBranch = [];
     const rightBranch = [];
 
-    // 2. Для кожного рівня mu знаходимо крайню ліву та крайню праву точку z
     for (const muLevel of uniqueMus) {
       let minZ = Infinity;
       let maxZ = -Infinity;
       
       for (let i = 0; i < C.zs.length; i++) {
-        // Запас 1e-9 потрібен для уникнення проблем з плаваючою комою
         if (C.mus[i] >= muLevel - 1e-9) {
           if (C.zs[i] < minZ) minZ = C.zs[i];
           if (C.zs[i] > maxZ) maxZ = C.zs[i];
         }
       }
-      
-      // Ліва гілка формується відсотково знизу вгору
+
       leftBranch.push({ x: minZ, y: muLevel });
-      // Права гілка формується зверху вниз (unshift додає на початок, розвертаючи масив)
       rightBranch.unshift({ x: maxZ, y: muLevel });
     }
 
-    // 3. Об'єднуємо гілки: графік пройде від лівого низу до вершини, а потім до правого низу
     const envC = [...leftBranch, ...rightBranch];
 
     const dotsA = A.xs.map((x, i) => ({ x, y: A.mus[i] }));
